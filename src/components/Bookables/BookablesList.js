@@ -23,6 +23,7 @@ export default function BookablesList () {
   const groups = [...new Set(bookables.map(b => b.group))];
 
   const timerRef = useRef(null);
+  const nextButtonRef = useRef();
 
   useEffect(() => {
     dispatch({type: "FETCH_BOOKABLES_REQUEST"});
@@ -65,6 +66,7 @@ export default function BookablesList () {
       type: "SET_BOOKABLE",
       payload: selectedIndex
     });
+    nextButtonRef.current.focus();
   }
 
   function nextBookable () {
@@ -135,6 +137,7 @@ export default function BookablesList () {
           <button
             className="btn"
             onClick={nextBookable}
+            ref={nextButtonRef}
             autoFocus
           >
             <FaArrowRight/>
