@@ -2,7 +2,6 @@ import React, {useReducer, useEffect, Fragment} from 'react';
 import {sessions, days} from "../../static.json";
 import {FaArrowRight, FaSpinner} from "react-icons/fa";
 import reducer from "./reducer";
-
 import getData from "../../utils/api";
 
 const initialState = {
@@ -11,14 +10,15 @@ const initialState = {
   hasDetails: true,
   bookables: [],
   isLoading: true,
-  error: false
+  error: false,
+  isPresenting: false
 };
 
 export default function BookablesList () {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const {group, bookableIndex, bookables} = state;
-  const {hasDetails, isLoading, error} = state;
+  const {hasDetails, isLoading, error, isPresenting} = state;
 
   const bookablesInGroup = bookables.filter(b => b.group === group);
   const bookable = bookablesInGroup[bookableIndex];
@@ -58,7 +58,10 @@ export default function BookablesList () {
   }
 
   function nextBookable () {
-    dispatch({type: "NEXT_BOOKABLE"});
+    dispatch({
+      type: "NEXT_BOOKABLE",
+      payload: false
+    });
   }
 
   function toggleDetails () {
