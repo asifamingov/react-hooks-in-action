@@ -1,4 +1,4 @@
-import React, {useReducer, useEffect, Fragment} from 'react';
+import React, {useReducer, useEffect, useRef, Fragment} from 'react';
 import {sessions, days} from "../../static.json";
 import {FaArrowRight, FaSpinner} from "react-icons/fa";
 import reducer from "./reducer";
@@ -16,38 +16,48 @@ const initialState = {
 
 export default function BookablesList () {
   const [state, dispatch] = useReducer(reducer, initialState);
-
   const {group, bookableIndex, bookables} = state;
   const {hasDetails, isLoading, error, isPresenting} = state;
-
   const bookablesInGroup = bookables.filter(b => b.group === group);
   const bookable = bookablesInGroup[bookableIndex];
   const groups = [...new Set(bookables.map(b => b.group))];
 
-  useEffect(() => {
+  const timerRef = useRef(null);
 
+  useEffect(() => {
     dispatch({type: "FETCH_BOOKABLES_REQUEST"});
 
     getData("http://localhost:3001/bookables")
-
       .then(bookables => dispatch({
         type: "FETCH_BOOKABLES_SUCCESS",
         payload: bookables
       }))
-
       .catch(error => dispatch({
         type: "FETCH_BOOKABLES_ERROR",
         payload: error
       }));
-
   }, []);
 
+  useEffect(() => {
+
+    if (isPresenting) {
+      scheduleNext();
+    } else {
+      clearNextTimeout();
+    }
+
+  });
 
   function changeGroup (e) {
     dispatch({
       type: "SET_GROUP",
       payload: e.target.value
     });
+
+    if (isPresenting) {
+      clearNextTimeout();
+      scheduleNext();
+    }
   }
 
   function changeBookable (selectedIndex) {
@@ -66,6 +76,23 @@ export default function BookablesList () {
 
   function toggleDetails () {
     dispatch({type: "TOGGLE_HAS_DETAILS"});
+  }
+
+  function scheduleNext () {
+    if (timerRef.current === null) {
+      timerRef.current = setTimeout(() => {
+        timerRef.current = null;
+        dispatch({
+          type: "NEXT_BOOKABLE",
+          payload: true
+        });
+      }, 3000);
+    }
+  }
+
+  function clearNextTimeout () {
+    clearTimeout(timerRef.current);
+    timerRef.current = null;
   }
 
   if (error) {
