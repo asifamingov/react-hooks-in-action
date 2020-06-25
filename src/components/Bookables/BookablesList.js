@@ -1,43 +1,27 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import {FaArrowRight, FaSpinner} from "react-icons/fa";
 import getData from "../../utils/api";
 
 export default function BookablesList ({bookable, setBookable}) {
   const [bookables, setBookables] = useState([]);
   const [error, setError] = useState(false);
-  const [isPresenting, setIsPresenting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
   const group = bookable?.group;
-
   const bookablesInGroup = bookables.filter(b => b.group === group);
   const groups = [...new Set(bookables.map(b => b.group))];
 
-  const nextButtonRef = useRef();
-
   useEffect(() => {
     getData("http://localhost:3001/bookables")
-
       .then(bookables => {
         setBookable(bookables[0]);
         setBookables(bookables);
         setIsLoading(false);
-        setIsPresenting(true);
       })
-
       .catch(error => {
         setError(error);
         setIsLoading(false);
       });
-
   }, [setBookable]);
-
-  useEffect(() => {
-    if (isPresenting) {
-      const id = setTimeout(nextBookable, 3000);
-      return () => clearTimeout(id);
-    }
-  });
 
   function changeGroup (event) {
     const bookablesInSelectedGroup = bookables.filter(
@@ -46,17 +30,7 @@ export default function BookablesList ({bookable, setBookable}) {
     setBookable(bookablesInSelectedGroup[0]);
   }
 
-  function changeBookable (selectedBookable) {
-    setBookable(selectedBookable);
-    setIsPresenting(false);
-    nextButtonRef.current.focus();
-  }
-
-  function nextBookable (stopPresenting) {
-    if (stopPresenting ) {
-      setIsPresenting(false);
-    }
-
+  function nextBookable () {
     const i = bookablesInGroup.indexOf(bookable);
     const nextIndex = (i + 1) % bookablesInGroup.length;
     const nextBookable = bookablesInGroup[nextIndex];
@@ -88,7 +62,7 @@ export default function BookablesList ({bookable, setBookable}) {
           >
             <button
               className="btn"
-              onClick={() => changeBookable(b)}
+              onClick={() => setBookable(b)}
             >
               {b.title}
             </button>
@@ -98,8 +72,7 @@ export default function BookablesList ({bookable, setBookable}) {
       <p>
         <button
           className="btn"
-          onClick={() => nextBookable(true)}
-          ref={nextButtonRef}
+          onClick={nextBookable}
           autoFocus
         >
           <FaArrowRight/>
