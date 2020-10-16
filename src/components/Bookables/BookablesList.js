@@ -49,6 +49,8 @@ export default function BookablesList () {
       clearNextTimeout();
     }
 
+    return clearNextTimeout;
+
   });
 
   function changeGroup (e) {
