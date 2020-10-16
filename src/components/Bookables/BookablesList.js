@@ -1,46 +1,42 @@
 import React, {useReducer, useEffect, Fragment} from 'react';
-import {bookables, sessions, days} from "../../static.json";
+import {sessions, days} from "../../static.json";
 import {FaArrowRight} from "react-icons/fa";
 import Spinner from "../UI/Spinner";
 import reducer from "./reducer";
-
 import getData from "../../utils/api";
 
 const initialState = {
   group: "Rooms",
   bookableIndex: 0,
   hasDetails: true,
-  bookables,
+  bookables: [],
   isLoading: true,
-  error: false
+  error: false,
+  isPresenting: false
 };
 
 export default function BookablesList () {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const {group, bookableIndex, bookables} = state;
-  const {hasDetails, isLoading, error} = state;
+  const {hasDetails, isLoading, error, isPresenting} = state;
 
   const bookablesInGroup = bookables.filter(b => b.group === group);
   const bookable = bookablesInGroup[bookableIndex];
   const groups = [...new Set(bookables.map(b => b.group))];
 
   useEffect(() => {
-
     dispatch({type: "FETCH_BOOKABLES_REQUEST"});
 
     getData("http://localhost:3001/bookables")
-
       .then(bookables => dispatch({
         type: "FETCH_BOOKABLES_SUCCESS",
         payload: bookables
       }))
-
       .catch(error => dispatch({
         type: "FETCH_BOOKABLES_ERROR",
         payload: error
       }));
-
   }, []);
 
   function changeGroup (e) {
@@ -58,7 +54,10 @@ export default function BookablesList () {
   }
 
   function nextBookable () {
-    dispatch({type: "NEXT_BOOKABLE"});
+    dispatch({
+      type: "NEXT_BOOKABLE",
+      payload: false
+    });
   }
 
   function toggleDetails () {
