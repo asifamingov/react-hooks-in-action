@@ -1,4 +1,4 @@
-import React, {useReducer, useEffect, Fragment} from 'react';
+import React, {useReducer, useEffect, useRef, Fragment} from 'react';
 import {sessions, days} from "../../static.json";
 import {FaArrowRight} from "react-icons/fa";
 import Spinner from "../UI/Spinner";
@@ -25,6 +25,8 @@ export default function BookablesList () {
   const bookable = bookablesInGroup[bookableIndex];
   const groups = [...new Set(bookables.map(b => b.group))];
 
+  const timerRef = useRef(null);
+
   useEffect(() => {
     dispatch({type: "FETCH_BOOKABLES_REQUEST"});
 
@@ -39,11 +41,26 @@ export default function BookablesList () {
       }));
   }, []);
 
+  useEffect(() => {
+
+    if (isPresenting) {
+      scheduleNext();
+    } else {
+      clearNextTimeout();
+    }
+
+  });
+
   function changeGroup (e) {
     dispatch({
       type: "SET_GROUP",
       payload: e.target.value
     });
+
+    if (isPresenting) {
+      clearNextTimeout();
+      scheduleNext();
+    }
   }
 
   function changeBookable (selectedIndex) {
@@ -62,6 +79,23 @@ export default function BookablesList () {
 
   function toggleDetails () {
     dispatch({type: "TOGGLE_HAS_DETAILS"});
+  }
+
+  function scheduleNext () {
+    if (timerRef.current === null) {
+      timerRef.current = setTimeout(() => {
+        timerRef.current = null;
+        dispatch({
+          type: "NEXT_BOOKABLE",
+          payload: true
+        });
+      }, 3000);
+    }
+  }
+
+  function clearNextTimeout () {
+    clearTimeout(timerRef.current);
+    timerRef.current = null;
   }
 
   if (error) {
