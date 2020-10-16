@@ -1,40 +1,56 @@
 import React, {useState, useEffect, Fragment} from 'react';
 import Spinner from "../UI/Spinner";
-import getData from "../../utils/api"; // we'll use this api function
+import getData from "../../utils/api";
 
 export default function UsersList () {
-  // include state for an error object and an isLoading flag
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
   const [users, setUsers] = useState(null);
   const [userIndex, setUserIndex] = useState(0);
   const user = users?.[userIndex];
 
-  // update the effect to use the getData function
+  // put the Presentation Mode flag in state
+  const [isPresenting, setIsPresenting] = useState(false);
+
   useEffect(() => {
     getData("http://localhost:3001/users")
       .then(data => {
         setUsers(data);
-        setIsLoading(false); // the data has finished loading
+        setIsLoading(false);
+        setIsPresenting(true); // the data has finished loading
       })
       .catch(error => {
-        setError(error); // set the error object
-        setIsLoading(false); // we're no longer loading
+        setError(error);
+        setIsLoading(false);
       });
   }, []);
 
-  // alternative UI for when there's an error
+  // there's no need for a ref because
+  // every re-render requires a new timer
+  useEffect(() => {
+    if (isPresenting && !isLoading && !error) {
+      let timerId = setTimeout(nextUser, 3000);
+
+      // clear any existing timer when the component re-renders
+      return () => clearTimeout(timerId);
+    }
+  }); // no deps - run after every render
+
+  // cycle through the users in the list
+  function nextUser () {
+    if (users) {
+      setUserIndex(i => (i + 1) % users.length);
+    }
+  }
+
   if (error) {
     return <p>{error.message}</p>
   }
 
-  // alternative UI while users load
   if (isLoading) {
     return <p><Spinner/> Loading users...</p>
   }
 
-  // this UI is unchanged
   return (
     <Fragment>
       <ul className="users items-list-nav">
@@ -45,7 +61,10 @@ export default function UsersList () {
           >
             <button
               className="btn"
-              onClick={() => setUserIndex(i)}
+              onClick={() => {
+                setIsPresenting(false);  // end Presentation Mode
+                setUserIndex(i);
+              }}
             >
               {u.name}
             </button>

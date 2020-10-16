@@ -42,13 +42,13 @@ export default function BookablesList () {
   }, []);
 
   useEffect(() => {
-
     if (isPresenting) {
       scheduleNext();
     } else {
       clearNextTimeout();
     }
 
+    return clearNextTimeout;
   });
 
   function changeGroup (e) {
